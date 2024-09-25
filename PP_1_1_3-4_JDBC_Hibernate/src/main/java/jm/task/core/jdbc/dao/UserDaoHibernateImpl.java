@@ -18,7 +18,6 @@ public class UserDaoHibernateImpl implements UserDao {
     private final String DROP_TABLE = "DROP TABLE IF EXISTS users";
     private final String CLEAN_TABLE = "TRUNCATE TABLE users";
     private final String GET_ALL_USERS = "SELECT * FROM users";
-    private static final Session session = Util.getSessionFactory().openSession();
 
     public UserDaoHibernateImpl() {
 
@@ -26,54 +25,58 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        try {
-            getTransaction();
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             session.createNativeQuery(CREATE_TABLE).executeUpdate();
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
     }
 
     @Override
     public void dropUsersTable() {
-        try {
-            getTransaction();
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             session.createNativeQuery(DROP_TABLE).executeUpdate();
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        try {
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
             User user = new User(name, lastName, age);
-            getTransaction();
+            transaction = session.beginTransaction();
             session.save(user);
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
     }
 
     @Override
     public void removeUserById(long id) {
-        try {
-            getTransaction();
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             User user = session.get(User.class, id);
             session.delete(user);
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
     }
@@ -81,13 +84,14 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public List<User> getAllUsers() {
         List <User> userList = new ArrayList<>();
-        try {
-            getTransaction();
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             userList = session.createNativeQuery(GET_ALL_USERS, User.class).getResultList();
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
         return userList;
@@ -95,19 +99,15 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        try {
-            getTransaction();
+        Transaction transaction = null;
+        try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
             session.createNativeQuery(CLEAN_TABLE).executeUpdate();
             session.getTransaction().commit();
         } catch (Exception e) {
-            if (session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
+            if (transaction.isActive()) {
+                transaction.rollback();
             }
         }
-    }
-
-    private static Transaction getTransaction() {
-        Transaction transaction = session.beginTransaction();
-        return transaction;
     }
 }
